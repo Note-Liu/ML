@@ -1,0 +1,116 @@
+import numpy as np
+import random
+'''
+函数说明：sigmoid函数
+Parameters：
+    inX---数据
+Returns：
+    sigmoid函数
+Modify:
+    2019-1-17
+'''
+def sigmoid(inX):
+    return 1.0 / (1 + np.exp(-inX))
+
+'''
+函数说明：改进的随机梯度上升算法
+Parameters:
+    dataMatrix----数据数组
+    classLabels---数据标签
+    numlter-----迭代次数
+Returns：
+    weights---求得的回归系数数组（最优参数）
+Modify:
+    2019-1-17
+
+def stoGradAscent(dataMatrix,classLabels,numlter=150):
+    m,n = np.shape(dataMatrix)
+    weights = np.ones(n)
+    for j in range(numlter):
+        dataIndex = list(range(m))
+        for i in range(m):
+            alpha = 4/(1.0+j+i)+0.01
+            randIndex = int(random.uniform(0,len(dataIndex)))
+            h = sigmoid(sum(dataMatrix[randIndex]*weights))
+            error = classLabels[randIndex] - h
+            weights = weights + alpha * error *dataMatrix[randIndex]
+            del(dataIndex[randIndex])
+    return weights
+'''
+def gradAscent(dataMatIn,classLabels):
+    #转换成numpy的mat
+    dataMatrix = np.mat(dataMatIn)
+    #转换成numpy的mat，并进行转置
+    labelMat = np.mat(classLabels).transpose()
+    #返回dataMatrix的大小，m为行数，n为列数
+    m,n = np.shape(dataMatrix)
+    #移动步长，也就是学习率，控制更新的幅度
+    alpha = 0.001
+    #最大的迭代次数
+    maxCycles = 500
+    weights = np.ones((n,1))
+    for k in range(maxCycles):
+        #梯度上升矢量化公式
+        h = sigmoid(dataMatrix * weights)
+        error = labelMat - h
+        weights = weights + alpha * dataMatrix.transpose() * error
+    return weights.getA()
+'''
+函数说明：使用Python写的Logistic分类器做预测
+Parameters：
+    无
+Returns：
+    无
+Modify：
+ 2019-1-12
+'''
+def colicText():
+    #打开训练集
+    frTrain = open('horseColicTraining.txt')
+    #打开测试集
+    frText = open('horseColicTest.txt')
+    trainingSet = []
+    trainingLabels = []
+    for line in frTrain.readlines():
+        currLine = line.strip().split('\t')
+        lineArr = []
+        for i in range(len(currLine)-1):
+            lineArr.append(float(currLine[i]))
+        trainingSet.append(lineArr)
+        trainingLabels.append(float(currLine[-1]))
+    trainWeights = gradAscent(np.array(trainingSet),trainingLabels)
+    errorCount = 0
+    numTestVec = 0.0
+    for line in frText.readlines():
+        numTestVec += 1.0
+        currLine = line.strip().split('\t')
+        lineArr = []
+        for i in range(len(currLine)-1):
+            lineArr.append(float(currLine[i]))
+        #if int(classifyVector(np.array(lineArr),trainWeights))!=int(currLine[-1]):
+        if int(classifyVector(np.array(lineArr), trainWeights[:, 0])) != int(currLine[-1]):
+                errorCount += 1
+    errorRate = (float(errorCount) / numTestVec) * 100
+    print("测试集错误率为:%.2f%%"%errorRate)
+
+'''
+函数说明：分类函数
+Parameters：
+    inX---特征向量
+    weights--回归系数
+Returns：
+    分类结果
+Modify:
+    2019-1-17
+'''
+def classifyVector(inX,weights):
+    prob = sigmoid(sum(inX * weights))
+    if prob > 0.5:
+        return 1.0
+    else:
+        return 0.0
+
+if __name__=="__main__":
+    colicText()
+
+
